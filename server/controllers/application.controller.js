@@ -1,0 +1,168 @@
+import Application from '../models/Application.model.js';
+import Job from '../models/Job.model.js';
+import { uploadToCloudinary } from '../middleware/upload.middleware.js';
+import { sendStatusEmail } from '../utils/email.js';
+import { triggerAIScoring } from '../utils/scoreJob.js';
+
+export const applyToJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const candidateId = req.user._id;
+
+    const existingApplication = await Application.findOne({ candidate: candidateId, job: jobId });
+    if (existingApplication) {
+      return res.status(400).json({ success: false, message: 'Already applied to this job' });
+    }
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+    if (job.status !== 'open') {
+      return res.status(400).json({ success: false, message: 'Job is no longer open' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Resume is required' });
+    }
+
+    const uploadResult = await uploadToCloudinary(req.file.buffer, req.file.originalname);
+
+    const application = new Application({
+      candidate: candidateId,
+      job: jobId,
+      resumeUrl: uploadResult.url,
+      resumePublicId: uploadResult.public_id,
+      coverLetter: req.body.coverLetter || '',
+    });
+
+    await application.save();
+
+    await Job.findByIdAndUpdate(jobId, { $inc: { applicantCount: 1 } });
+
+    triggerAIScoring(application._id, uploadResult.url, job);
+
+    res.status(201).json({ success: true, data: application });
+  } catch (error) {
+    console.error('applyToJob Error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const getCandidateApplications = async (req, res) => {
+  try {
+    const candidateId = req.user._id;
+
+    const applications = await Application.find({ candidate: candidateId })
+      .populate({
+        path: 'job',
+        select: 'title location type salary status employer',
+        populate: {
+          path: 'employer',
+          select: 'companyName companyLogo',
+        },
+      })
+      .sort({ appliedAt: -1 });
+
+    res.status(200).json({ success: true, data: applications });
+  } catch (error) {
+    console.error('getCandidateApplications Error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const getJobApplications = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const employerId = req.user._id;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+    if (job.employer.toString() !== employerId.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to view these applications' });
+    }
+
+    const applications = await Application.find({ job: jobId })
+      .populate('candidate', 'name email resumeUrl')
+      .sort({ aiScore: -1 });
+
+    res.status(200).json({ success: true, data: applications });
+  } catch (error) {
+    console.error('getJobApplications Error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const updateApplicationStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const employerId = req.user._id;
+
+    const validStatuses = ['applied', 'shortlisted', 'interview', 'rejected', 'hired'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const application = await Application.findById(id).populate('job').populate('candidate', 'name email');
+    if (!application) {
+      return res.status(404).json({ success: false, message: 'Application not found' });
+    }
+
+    if (application.job.employer.toString() !== employerId.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to update this application' });
+    }
+
+    application.status = status;
+    await application.save();
+
+    // Fire-and-forget email
+    sendStatusEmail(application.candidate.email, application.candidate.name, application.job.title, status);
+
+    // Socket.io emit
+    const io = req.app.get('io');
+    if (io) {
+      io.to(application.candidate._id.toString()).emit('applicationStatusUpdated', {
+        candidateId: application.candidate._id,
+        jobTitle: application.job.title,
+        status: status,
+      });
+    }
+
+    res.status(200).json({ success: true, data: application });
+  } catch (error) {
+    console.error('updateApplicationStatus Error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const withdrawApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const candidateId = req.user._id;
+
+    const application = await Application.findById(id);
+    if (!application) {
+      return res.status(404).json({ success: false, message: 'Application not found' });
+    }
+
+    if (application.candidate.toString() !== candidateId.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to withdraw this application' });
+    }
+
+    if (application.status !== 'applied') {
+      return res.status(400).json({ success: false, message: 'Cannot withdraw application after it has been processed' });
+    }
+
+    await Application.findByIdAndDelete(id);
+
+    await Job.findByIdAndUpdate(application.job, { $inc: { applicantCount: -1 } });
+
+    res.status(200).json({ success: true, message: 'Application withdrawn successfully' });
+  } catch (error) {
+    console.error('withdrawApplication Error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};

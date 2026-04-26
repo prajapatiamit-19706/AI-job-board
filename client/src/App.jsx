@@ -11,6 +11,7 @@ import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
 import EmployerDashboard from './pages/employer/EmployerDashboard';
 import CandidateDashboard from './pages/candidate/CandidateDashboard';
+import ApplicantsView from './pages/employer/ApplicantsView';
 import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
@@ -32,6 +33,14 @@ function App() {
             element={
               <ProtectedRoute role="employer">
                 <EmployerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employer/jobs/:jobId/applicants"
+            element={
+              <ProtectedRoute role="employer">
+                <ApplicantsView />
               </ProtectedRoute>
             }
           />

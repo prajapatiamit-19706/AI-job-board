@@ -118,16 +118,16 @@ const EmployerDashboard = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
-                          <button 
-                            onClick={() => alert('View Applicants will be built in Phase 3')}
+                          <Link 
+                            to={`/employer/jobs/${job._id}/applicants`}
                             className="border border-purple/60 text-purple-light rounded-lg hover:bg-purple-muted transition-all px-3 py-1.5 text-xs font-medium"
                           >
                             View Applicants
-                          </button>
+                          </Link>
                           {job.status === 'open' && (
                             <button 
                               onClick={() => handleCloseJob(job._id)}
-                              disabled={closeJobMutation.isLoading}
+                              disabled={closeJobMutation.isPending}
                               className="text-text-hint hover:text-red-400 font-medium text-xs transition-colors px-2"
                             >
                               Close

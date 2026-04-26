@@ -1,12 +1,22 @@
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetJobById } from '../hooks/useJobs';
 import useAuthStore from '../store/authStore';
+import ApplyModal from '../components/candidate/ApplyModal'
+import { useGetCandidateApplications } from '../hooks/useApplications';
 
 const JobDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { data: job, isLoading, isError } = useGetJobById(id);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+
+  const { data: myApplications = [] } = useGetCandidateApplications({
+    enabled: !!user && user.role === 'candidate',
+  });
+
+  const existingApplication = myApplications.find((app) => app.job?._id === id || app.job === id);
 
   if (isLoading) {
     return (
@@ -57,8 +67,8 @@ const JobDetail = () => {
   return (
     <div className="bg-bg-main min-h-screen">
       <div className="max-w-5xl mx-auto px-6 py-8">
-        <button 
-          onClick={() => navigate(-1)} 
+        <button
+          onClick={() => navigate(-1)}
           className="text-text-muted hover:text-text-primary mb-6 flex items-center gap-2 text-sm font-medium transition-colors"
         >
           <span>←</span> Back to jobs
@@ -69,9 +79,9 @@ const JobDetail = () => {
           <div className="w-full lg:w-2/3">
             <div className="flex items-start gap-4 mb-4">
               {job.employer?.companyLogo && (
-                <img 
-                  src={job.employer.companyLogo} 
-                  alt={job.employer.companyName} 
+                <img
+                  src={job.employer.companyLogo}
+                  alt={job.employer.companyName}
                   className="w-16 h-16 rounded-xl object-cover border border-border-soft hidden sm:block"
                 />
               )}
@@ -141,14 +151,14 @@ const JobDetail = () => {
                 <div className="mb-8">
                   <h3 className="text-text-muted text-sm font-medium uppercase tracking-wider mb-2">Posted</h3>
                   <div className="text-text-primary">
-                    {new Date(job.createdAt).toLocaleDateString('en-US', { 
-                      year: 'numeric', month: 'long', day: 'numeric' 
+                    {new Date(job.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric', month: 'long', day: 'numeric'
                     })}
                   </div>
                 </div>
 
                 {!user ? (
-                  <button 
+                  <button
                     onClick={() => navigate('/login', { state: { from: `/jobs/${job._id}` } })}
                     className="w-full bg-purple text-white font-bold rounded-lg py-3 hover:bg-purple/90 transition-all text-center"
                   >
@@ -160,9 +170,19 @@ const JobDetail = () => {
                       You cannot apply to jobs with an {user.role} account.
                     </p>
                   </div>
+                ) : existingApplication ? (
+                  <div className={`text-center font-bold px-4 py-3 rounded-lg border uppercase tracking-wider
+                    ${existingApplication.status === 'applied' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : ''}
+                    ${existingApplication.status === 'shortlisted' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : ''}
+                    ${existingApplication.status === 'interview' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : ''}
+                    ${existingApplication.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' : ''}
+                    ${existingApplication.status === 'hired' ? 'bg-green-500/10 text-green-400 border-green-500/20' : ''}
+                  `}>
+                    Status: {existingApplication.status}
+                  </div>
                 ) : (
-                  <button 
-                    onClick={() => alert('Application flow will be built in Phase 3!')}
+                  <button
+                    onClick={() => setIsApplyModalOpen(true)}
                     className="w-full bg-purple text-white font-bold rounded-lg py-3 hover:bg-purple/90 transition-all text-center shadow-lg shadow-purple/20"
                   >
                     Apply Now
@@ -173,6 +193,15 @@ const JobDetail = () => {
           </div>
         </div>
       </div>
+      {job && (
+        <ApplyModal
+          isOpen={isApplyModalOpen}
+          onClose={() => setIsApplyModalOpen(false)}
+          jobId={job._id}
+          jobTitle={job.title}
+          companyName={job.employer?.companyName || job.employer?.name}
+        />
+      )}
     </div>
   );
 };
