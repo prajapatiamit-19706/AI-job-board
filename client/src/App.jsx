@@ -13,9 +13,12 @@ import EmployerDashboard from './pages/employer/EmployerDashboard';
 import CandidateDashboard from './pages/candidate/CandidateDashboard';
 import ApplicantsView from './pages/employer/ApplicantsView';
 import AdminDashboard from './pages/AdminDashboard';
-
+import NotFound from './pages/NotFound';
+import Toast from './components/common/Toast';
+import useToastStore from './store/toastStore';
 function App() {
   useAuth(); // Initialize auth state on load
+  const { toasts, removeToast } = useToastStore();
 
   return (
     <div className="min-h-screen bg-bg-main flex flex-col">
@@ -60,8 +63,22 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+
+      {/* Toast Container */}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="pointer-events-auto">
+            <Toast 
+              message={toast.message} 
+              type={toast.type} 
+              onClose={() => removeToast(toast.id)} 
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

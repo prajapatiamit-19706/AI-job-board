@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const { user, token, logout } = useAuthStore();
@@ -30,6 +31,7 @@ const Navbar = () => {
               Dashboard
             </Link>
             <span className="text-text-primary">{user.name}</span>
+            <NotificationBell />
             <button 
               onClick={handleLogout}
               className="bg-bg-surface text-text-muted border border-border-soft rounded-full px-3 py-1 text-xs hover:text-text-primary transition-all"

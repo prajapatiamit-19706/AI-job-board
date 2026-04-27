@@ -8,7 +8,9 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import jobRoutes from './routes/job.routes.js';
 import applicationRoutes from './routes/application.routes.js';
-import { initSocket } from './config/socket.js';
+import notificationRoutes from './routes/notification.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+import { setIO } from './config/socket.js';
 
 dotenv.config();
 
@@ -24,7 +26,7 @@ const io = new Server(server, {
   },
 });
 
-initSocket(io);
+setIO(io);
 
 app.use(cors());
 app.use(express.json());
@@ -34,6 +36,8 @@ app.set('io', io);
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

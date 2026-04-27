@@ -1,22 +1,13 @@
 import { formatDistanceToNow } from 'date-fns';
 
 const AIScoreCard = ({ application }) => {
-  const {
-    aiScore,
-    aiSummary,
-    aiSkillsMatched,
-    aiSkillsMissing,
-    aiExperienceMatch,
-    aiRecommendation,
-    aiScoredAt,
-  } = application;
-
-  if (aiScore === undefined || aiScore === null) {
+  if (application.aiScore === null || application.aiScore === undefined) {
     return (
-      <div className="bg-bg-card border border-border-soft rounded-xl p-5 mt-4">
-        <div className="flex flex-col items-center justify-center space-y-4 py-6">
-          <div className="w-8 h-8 rounded-full border-2 border-t-purple border-border-soft animate-spin"></div>
-          <p className="text-text-hint text-sm animate-pulse">AI is analyzing this resume...</p>
+      <div className="bg-bg-card border border-border-soft rounded-xl p-5 mt-3">
+        <div className="text-center py-4">
+          <div className="w-8 h-8 rounded-full border-2 border-t-purple-light border-bg-surface animate-spin mx-auto"></div>
+          <p className="text-text-hint text-sm text-center mt-3 animate-pulse">AI is analyzing this resume...</p>
+          <p className="text-text-hint text-xs text-center mt-1">This usually takes 10–20 seconds</p>
         </div>
       </div>
     );
@@ -69,108 +60,85 @@ const AIScoreCard = ({ application }) => {
     }
   };
 
-  const recBadge = getRecommendationBadge(aiRecommendation);
+  const recBadge = getRecommendationBadge(application.aiRecommendation);
 
   return (
-    <div className="bg-bg-card border border-border-soft rounded-xl p-5 mt-4">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <div
-            className={`w-16 h-16 rounded-full border-2 flex items-center justify-center font-bold text-2xl ${getScoreColorClass(
-              aiScore
-            )}`}
-          >
-            {aiScore}
+    <div className="bg-bg-card border border-border-soft rounded-xl p-5 mt-3">
+      <div className="flex justify-between items-start">
+        <div className="flex flex-col items-center">
+          <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center flex-col ${getScoreColorClass(application.aiScore)}`}>
+            <span className="text-2xl font-bold leading-none">{application.aiScore}</span>
+            <span className="text-text-hint text-[10px] leading-none mt-1">/ 100</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-text-primary font-bold text-lg">AI Match Score</span>
-            <span className="text-text-hint text-xs">Based on job requirements</span>
-          </div>
+          <span className="text-text-hint text-xs text-center mt-1 font-medium tracking-wide">AI Match</span>
         </div>
-        <div className={`px-4 py-2 border rounded-full text-sm font-medium ${recBadge.classes}`}>
+        
+        <div className={`rounded-full px-3 py-1 text-xs font-medium border ${recBadge.classes}`}>
           {recBadge.text}
         </div>
       </div>
 
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-text-muted text-sm">Match strength</span>
-          <span className="text-text-primary font-bold">{aiScore}%</span>
+      <div className="mt-4">
+        <div className="flex justify-between items-end mb-1.5">
+          <span className="text-text-muted text-sm font-medium">Match strength</span>
+          <span className="text-text-hint text-xs font-bold">{application.aiScore}%</span>
         </div>
-        <div className="bg-bg-surface rounded-full h-2 w-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-700 ${getProgressBarColor(aiScore)}`}
-            style={{ width: `${aiScore}%` }}
-          ></div>
+        <div className="w-full bg-bg-surface rounded-full h-2">
+          <div 
+            className={`transition-all duration-700 rounded-full h-2 ${getProgressBarColor(application.aiScore)}`}
+            style={{ width: `${application.aiScore}%` }}
+          />
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-text-muted text-sm">Experience match:</span>
-        <span
-          className={`px-3 py-1 border rounded-full text-xs font-bold uppercase tracking-wider ${getExperiencePill(
-            aiExperienceMatch
-          )}`}
-        >
-          {aiExperienceMatch}
+      <div className="mt-3 flex items-center gap-2">
+        <span className="text-text-muted text-sm">Experience:</span>
+        <span className={`rounded-full px-2 py-1 text-xs capitalize border ${getExperiencePill(application.aiExperienceMatch)}`}>
+          {application.aiExperienceMatch || 'unknown'}
         </span>
       </div>
 
-      <div className="mb-6">
-        <h4 className="text-text-muted text-sm font-medium mb-2">AI Assessment</h4>
-        <div className="bg-bg-surface rounded-lg p-3">
-          <p className="text-text-hint text-sm leading-relaxed italic">{aiSummary}</p>
+      <div className="mt-3">
+        <h4 className="text-text-muted text-xs font-medium uppercase tracking-wide">AI Assessment</h4>
+        <div className="bg-bg-surface rounded-lg p-3 mt-1">
+          <p className="text-text-hint text-sm leading-relaxed italic">{application.aiSummary}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-        <div>
-          <h4 className="text-green-400 text-xs font-medium uppercase tracking-wider mb-3">Skills matched</h4>
-          <div className="flex flex-wrap gap-2">
-            {aiSkillsMatched && aiSkillsMatched.length > 0 ? (
-              aiSkillsMatched.map((skill, idx) => (
-                <span
-                  key={idx}
-                  className="bg-green-500/10 text-green-400 border border-green-500/20 rounded-full px-3 py-1 text-xs flex items-center gap-1.5"
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {skill}
-                </span>
-              ))
-            ) : (
-              <span className="text-text-hint text-xs">No key skills matched</span>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <h4 className="text-red-400 text-xs font-medium uppercase tracking-wider mb-3">Skills missing</h4>
-          <div className="flex flex-wrap gap-2">
-            {aiSkillsMissing && aiSkillsMissing.length > 0 ? (
-              aiSkillsMissing.map((skill, idx) => (
-                <span
-                  key={idx}
-                  className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-full px-3 py-1 text-xs flex items-center gap-1.5"
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  {skill}
-                </span>
-              ))
-            ) : (
-              <span className="text-green-400 text-xs">No critical gaps found</span>
-            )}
-          </div>
+      <div className="mt-3">
+        <h4 className="text-green-400 text-xs font-medium mb-2">✓ Skills Matched</h4>
+        <div className="flex flex-wrap gap-2">
+          {application.aiSkillsMatched && application.aiSkillsMatched.length > 0 ? (
+            application.aiSkillsMatched.map((skill, idx) => (
+              <span key={idx} className="bg-green-500/10 text-green-400 border border-green-500/20 rounded-full px-2 py-1 text-xs">
+                {skill}
+              </span>
+            ))
+          ) : (
+            <span className="text-text-hint text-xs">No matched skills detected</span>
+          )}
         </div>
       </div>
 
-      {aiScoredAt && (
-        <div className="text-right mt-2">
+      <div className="mt-3">
+        <h4 className="text-red-400 text-xs font-medium mb-2">✕ Skills Missing</h4>
+        <div className="flex flex-wrap gap-2">
+          {application.aiSkillsMissing && application.aiSkillsMissing.length > 0 ? (
+            application.aiSkillsMissing.map((skill, idx) => (
+              <span key={idx} className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-full px-2 py-1 text-xs">
+                {skill}
+              </span>
+            ))
+          ) : (
+            <span className="text-green-400 text-xs">No critical gaps found ✓</span>
+          )}
+        </div>
+      </div>
+
+      {application.aiScoredAt && (
+        <div className="mt-3 text-right">
           <span className="text-text-hint text-xs">
-            Scored {formatDistanceToNow(new Date(aiScoredAt), { addSuffix: true })}
+            Scored {formatDistanceToNow(new Date(application.aiScoredAt))} ago
           </span>
         </div>
       )}

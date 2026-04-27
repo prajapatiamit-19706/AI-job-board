@@ -3,7 +3,7 @@ import Job from '../models/Job.model.js';
 import { uploadToCloudinary } from '../middleware/upload.middleware.js';
 import { sendStatusEmail } from '../utils/email.js';
 import { triggerAIScoring } from '../utils/scoreJob.js';
-
+import { createNotification } from '../utils/notify.js';
 export const applyToJob = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -39,8 +39,16 @@ export const applyToJob = async (req, res) => {
     await application.save();
 
     await Job.findByIdAndUpdate(jobId, { $inc: { applicantCount: 1 } });
-
+    console.log('Firing AI scoring for application:', application._id)
     triggerAIScoring(application._id, uploadResult.url, job);
+
+    createNotification(
+      job.employer,
+      'application_received',
+      'New Application Received',
+      `${req.user.name} applied for ${job.title}`,
+      { jobId: job._id, applicationId: application._id }
+    );
 
     res.status(201).json({ success: true, data: application });
   } catch (error) {
@@ -130,6 +138,14 @@ export const updateApplicationStatus = async (req, res) => {
         status: status,
       });
     }
+
+    createNotification(
+      application.candidate._id,
+      'status_changed',
+      'Application Status Updated',
+      `Your application for ${application.job.title} has been ${status}`,
+      { jobId: application.job._id, applicationId: application._id }
+    );
 
     res.status(200).json({ success: true, data: application });
   } catch (error) {

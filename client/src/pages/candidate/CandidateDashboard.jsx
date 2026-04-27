@@ -76,7 +76,7 @@ const CandidateDashboard = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex-1">
                     <h3 className="text-text-primary font-bold text-lg">{app.job?.title || 'Unknown Job'}</h3>
                     <p className="text-text-muted text-sm">{app.job?.employer?.companyName || 'Unknown Company'}</p>
@@ -114,7 +114,7 @@ const CandidateDashboard = () => {
                     )}
                   </div>
                 </div>
-                
+
                 <AIScoreSummary application={app} />
               </div>
             ))}
@@ -125,7 +125,7 @@ const CandidateDashboard = () => {
             <p className="text-text-muted text-lg mb-8">
               Start applying to jobs and track your progress here. Our AI system will score your resume against job requirements to help you find the perfect match.
             </p>
-            <Link 
+            <Link
               to="/jobs"
               className="inline-block bg-purple text-white font-bold rounded-lg px-8 py-3 hover:bg-purple/90 transition-all shadow-lg shadow-purple/20"
             >
