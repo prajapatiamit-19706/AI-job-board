@@ -10,6 +10,7 @@ import jobRoutes from './routes/job.routes.js';
 import applicationRoutes from './routes/application.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import interviewRoutes from './routes/interview.routes.js';
 import { setIO } from './config/socket.js';
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/interviews', interviewRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

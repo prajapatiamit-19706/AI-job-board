@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQueries } from '@tanstack/react-query';
+import axiosInstance from '../../api/axiosInstance';
 import { useGetJobApplications, useUpdateApplicationStatus } from '../../hooks/useApplications';
 import { useGetJobById } from '../../hooks/useJobs';
 import { useAIScoreSocket } from '../../hooks/useSocket';
 import AIScoreCard from '../../components/employer/AIScoreCard';
+import InterviewQuestionsPanel from '../../components/employer/InterviewQuestionsPanel';
 
 const ApplicantsView = () => {
     const { jobId } = useParams();
@@ -13,6 +15,15 @@ const ApplicantsView = () => {
     const { mutate: updateStatus, isPending: isUpdating } = useUpdateApplicationStatus();
     const queryClient = useQueryClient();
     const [expanded, setExpanded] = useState({});
+    const [showInterview, setShowInterview] = useState({});
+
+    const interviewQueries = useQueries({
+        queries: applications?.map(app => ({
+            queryKey: ['interview-questions', app._id],
+            queryFn: () => axiosInstance.get(`/api/interviews/${app._id}`).then(res => res.data.data),
+            enabled: !!app._id
+        })) || []
+    });
 
     useAIScoreSocket(useCallback((data) => {
         queryClient.setQueryData(['job-applications', jobId], (old) => {
@@ -140,6 +151,31 @@ const ApplicantsView = () => {
                                 {expanded[app._id] && (
                                     <div className="px-5 pb-5 border-t border-border-soft bg-bg-main/30">
                                         <AIScoreCard application={app} />
+                                        
+                                        <button
+                                            onClick={() => setShowInterview(prev => ({ ...prev, [app._id]: !prev[app._id] }))}
+                                            className="mt-2 w-full flex items-center justify-between bg-bg-surface rounded-xl px-4 py-2.5 cursor-pointer hover:bg-bg-card border border-border-soft hover:border-purple/30 transition-all"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-purple-light text-sm">⚡</span>
+                                                <span className="text-text-muted text-sm">Interview Questions</span>
+                                                {(() => {
+                                                    const queryIndex = applications.findIndex(a => a._id === app._id);
+                                                    const interviewData = interviewQueries[queryIndex]?.data;
+                                                    if (interviewData) {
+                                                        return <span className="text-green-400 text-xs flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>Ready</span>;
+                                                    }
+                                                    return <span className="text-text-hint text-xs">Not generated</span>;
+                                                })()}
+                                            </div>
+                                            <span className="text-text-hint text-xs">
+                                                {showInterview[app._id] ? '▲' : '▼'}
+                                            </span>
+                                        </button>
+
+                                        {showInterview[app._id] && (
+                                            <InterviewQuestionsPanel application={app} jobTitle={job?.title} />
+                                        )}
                                     </div>
                                 )}
                             </div>

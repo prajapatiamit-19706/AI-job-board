@@ -23,7 +23,8 @@ const Login = () => {
       const { data } = await axiosInstance.post('/api/auth/login', formData);
       if (data.success) {
         setAuth(data.data, data.data.token);
-        navigate(`/${data.data.role}/dashboard`);
+        // navigate(`/${data.data.role}/dashboard`);
+        navigate("/");
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
@@ -38,7 +39,7 @@ const Login = () => {
         <h2 className="text-2xl text-text-primary font-bold tracking-tight text-center mb-6">
           Welcome back
         </h2>
-        
+
         {error && (
           <div className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg p-3 mb-4 text-sm text-center">
             {error}

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useGetCandidateApplications, useWithdrawApplication } from '../../hooks/useApplications';
 import AIScoreSummary from '../../components/candidate/AIScoreSummary';
+import InterviewPrepCard from '../../components/candidate/InterviewPrepCard';
 
 const CandidateDashboard = () => {
   const { data: applications = [], isLoading } = useGetCandidateApplications();
@@ -116,6 +117,9 @@ const CandidateDashboard = () => {
                 </div>
 
                 <AIScoreSummary application={app} />
+                {(app.status === 'shortlisted' || app.status === 'interview') && (
+                  <InterviewPrepCard applicationId={app._id} jobTitle={app.job?.title} />
+                )}
               </div>
             ))}
           </div>

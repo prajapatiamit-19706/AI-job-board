@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 import NotificationBell from './NotificationBell';
 
@@ -18,21 +18,26 @@ const Navbar = () => {
       </Link>
 
       <div className="flex items-center gap-6">
-        <Link to="/jobs" className="text-text-muted hover:text-text-primary transition-colors">
+        <NavLink to="/jobs" className={({ isActive }) =>
+          `hover:text-text-primary transition-colors ${isActive ? "text-text-primary" : "text-text-muted"}`
+        }
+        >
           Jobs
-        </Link>
-        
+        </NavLink>
+
         {token && user ? (
           <div className="flex items-center gap-4">
-            <Link 
-              to={`/${user.role}/dashboard`} 
-              className="text-text-muted hover:text-text-primary transition-colors"
+            <NavLink
+              to={`/${user.role}/dashboard`}
+              className={({ isActive }) =>
+                `hover:text-text-primary transition-colors ${isActive ? "text-text-primary" : "text-text-muted"}`
+              }
             >
               Dashboard
-            </Link>
+            </NavLink>
             <span className="text-text-primary">{user.name}</span>
             <NotificationBell />
-            <button 
+            <button
               onClick={handleLogout}
               className="bg-bg-surface text-text-muted border border-border-soft rounded-full px-3 py-1 text-xs hover:text-text-primary transition-all"
             >
