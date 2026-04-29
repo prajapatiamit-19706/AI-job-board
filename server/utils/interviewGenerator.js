@@ -1,4 +1,8 @@
 import Groq from 'groq-sdk';
+import Application from '../models/Application.model.js';
+import InterviewQuestion from '../models/InterviewQuestion.model.js';
+import { getIO } from '../config/socket.js';
+import { createNotification } from './notify.js';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -101,5 +105,58 @@ Technical questions should match the difficulty to the AI score:
   } catch (error) {
     console.error('Error generating interview questions:', error);
     return null;
+  }
+};
+
+export const triggerInterviewGeneration = async (applicationId, job) => {
+  try {
+    const application = await Application.findById(applicationId)
+      .populate('candidate', 'name email');
+
+    if (!application?.aiScore) {
+      console.log('No AI score yet — skipping interview generation');
+      return;
+    }
+
+    const questions = await generateInterviewQuestions(job, application);
+    if (!questions) return;
+
+    await InterviewQuestion.findOneAndUpdate(
+      { applicationId },
+      {
+        jobId: job._id,
+        applicationId,
+        employerId: job.employer, // Include employerId as per schema
+        candidateId: application.candidate._id,
+        questions,
+        aiScore: application.aiScore,
+        generatedAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    // notify candidate via socket
+    const io = getIO();
+    if (io) {
+      io.emit('interviewQuestionsReady', {
+        recipientId: application.candidate._id.toString(),
+        jobTitle: job.title,
+        questionCount: questions.length
+      });
+    }
+
+    // notify via notification system
+    createNotification(
+      application.candidate._id,
+      'ai_scored',
+      'Interview Prep Questions Ready',
+      `Your personalized interview questions for ${job.title} are ready. Start preparing!`,
+      { jobId: job._id, applicationId }
+    );
+
+    console.log('Interview questions auto-generated for:', applicationId);
+
+  } catch (err) {
+    console.error('triggerInterviewGeneration error:', err.message);
   }
 };

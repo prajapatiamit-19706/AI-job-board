@@ -4,7 +4,7 @@ import { useGetCandidateQuestions } from '../../hooks/useInterviewQuestions';
 export default function InterviewPrepCard({ applicationId, jobTitle }) {
   const { data: response } = useGetCandidateQuestions(applicationId);
   const data = response?.data;
-  
+
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [studied, setStudied] = useState([]);
@@ -39,7 +39,7 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
   }
 
   const { questions, aiScore } = data;
-  
+
   const filteredQuestions = questions.filter(q => {
     if (activeTab === 'All') return true;
     return q.category.toLowerCase() === activeTab.toLowerCase();
@@ -70,7 +70,8 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
 
   return (
     <div className="mt-4 pt-4 border-t border-border-soft">
-      <div 
+
+      <div
         className={`text-purple-light text-xs font-medium cursor-pointer flex items-center gap-1 ${justAppeared ? 'animate-pulse' : ''}`}
         onClick={() => setExpanded(!expanded)}
       >
@@ -86,7 +87,7 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
               🎯 Your Interview Prep Guide
             </h4>
             <p className="text-text-muted text-xs leading-relaxed mt-1">
-              The employer has shared {total} preparation questions for your {jobTitle} interview. Study these carefully!
+              Here are {total} AI-generated preparation questions for your {jobTitle} application. Study these carefully!
             </p>
             {aiScore !== undefined && (
               <div className="bg-bg-surface text-text-muted border border-border-soft rounded-full px-3 py-1 text-xs mt-3 inline-block">
@@ -103,11 +104,10 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`rounded-lg px-3 py-1 text-xs transition-all ${
-                    isActive 
-                      ? 'bg-purple text-white font-bold' 
+                  className={`rounded-lg px-3 py-1 text-xs transition-all ${isActive
+                      ? 'bg-purple text-white font-bold'
                       : 'bg-bg-surface text-text-muted hover:bg-bg-card'
-                  }`}
+                    }`}
                 >
                   {tab}
                 </button>
@@ -120,12 +120,12 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
             {filteredQuestions.map((q, filteredIdx) => {
               const originalIndex = questions.indexOf(q);
               const isStudied = studied.includes(originalIndex);
-              
+
               return (
                 <div key={originalIndex} className="bg-bg-surface rounded-xl p-3 flex gap-3 items-start">
                   <div className="pt-1">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={isStudied}
                       onChange={() => toggleStudied(originalIndex)}
                       className="accent-purple w-3 h-3 rounded cursor-pointer"
@@ -161,8 +161,8 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
               )}
             </div>
             <div className="w-full bg-bg-surface rounded-full h-1.5 overflow-hidden">
-              <div 
-                className="bg-purple h-1.5 rounded-full transition-all duration-500 ease-out" 
+              <div
+                className="bg-purple h-1.5 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progressPercent}%` }}
               ></div>
             </div>
@@ -178,6 +178,7 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
             </p>
           </div>
         </div>
+
       )}
     </div>
   );
