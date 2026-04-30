@@ -117,7 +117,12 @@ const CandidateDashboard = () => {
                 </div>
 
                 <AIScoreSummary application={app} />
-                <InterviewPrepCard applicationId={app._id} jobTitle={app.job?.title} />
+                {
+                  app.status === 'shortlisted' || app.status === 'interview' && (
+                    <InterviewPrepCard applicationId={app._id} jobTitle={app.job?.title} />
+                  )
+                }
+
               </div>
             ))}
           </div>
