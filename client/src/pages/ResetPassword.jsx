@@ -1,15 +1,25 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
-import useAuthStore from '../store/authStore';
+import useToastStore from '../store/toastStore';
 
-const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+const ResetPassword = () => {
+  const [formData, setFormData] = useState({ otp: '', newPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
   const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
+  const location = useLocation();
+  const { addToast } = useToastStore();
+
+  const email = location.state?.email;
+
+  useEffect(() => {
+    if (!email) {
+      navigate('/forgot-password');
+    }
+  }, [email, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,14 +31,17 @@ const Login = () => {
     setError('');
 
     try {
-      const { data } = await axiosInstance.post('/api/auth/login', formData);
+      const { data } = await axiosInstance.post('/api/auth/reset-password', { 
+        email, 
+        otp: formData.otp, 
+        newPassword: formData.newPassword 
+      });
       if (data.success) {
-        setAuth(data.data, data.data.token);
-        // navigate(`/${data.data.role}/dashboard`);
-        navigate("/");
+        addToast(data.message || 'Password reset successfully', 'success');
+        navigate('/login');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -37,9 +50,12 @@ const Login = () => {
   return (
     <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-bg-card border border-border-soft rounded-xl p-8 shadow-xl">
-        <h2 className="text-2xl text-text-primary font-bold tracking-tight text-center mb-6">
-          Welcome back
+        <h2 className="text-2xl text-text-primary font-bold tracking-tight text-center mb-2">
+          Reset Password
         </h2>
+        <p className="text-center text-text-muted text-sm mb-6">
+          Enter the OTP sent to {email} and your new password.
+        </p>
 
         {error && (
           <div className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg p-3 mb-4 text-sm text-center">
@@ -49,25 +65,28 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-text-muted mb-1 text-sm">Email</label>
+            <label className="block text-text-muted mb-1 text-sm">OTP Code</label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="otp"
+              value={formData.otp}
               onChange={handleChange}
               required
-              className="w-full bg-bg-surface border border-border-soft rounded-lg px-4 py-2 text-text-primary placeholder:text-text-hint focus:border-purple outline-none transition-colors"
-              placeholder="you@example.com"
+              className="w-full bg-bg-surface border border-border-soft rounded-lg px-4 py-2 text-text-primary placeholder:text-text-hint focus:border-purple outline-none transition-colors tracking-widest text-center font-bold"
+              placeholder="123456"
+              maxLength={6}
             />
           </div>
+          
           <div className="relative">
-            <label className="block text-text-muted mb-1 text-sm">Password</label>
+            <label className="block text-text-muted mb-1 text-sm">New Password</label>
             <input
               type={showPassword ? "text" : "password"}
-              name="password"
-              value={formData.password}
+              name="newPassword"
+              value={formData.newPassword}
               onChange={handleChange}
               required
+              minLength={6}
               className="w-full bg-bg-surface border border-border-soft rounded-lg px-4 py-2 pr-10 text-text-primary placeholder:text-text-hint focus:border-purple outline-none transition-colors"
               placeholder="••••••••"
             />
@@ -87,30 +106,19 @@ const Login = () => {
                 </svg>
               )}
             </button>
-            <div className="flex justify-end mt-2">
-              <Link to="/forgot-password" className="text-xs text-purple-light hover:underline">
-                Forgot password?
-              </Link>
-            </div>
           </div>
+
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || formData.otp.length < 6 || !formData.newPassword}
             className="w-full bg-purple text-white font-bold rounded-lg py-2 mt-4 hover:bg-purple/90 transition-all disabled:opacity-50"
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
-
-        <p className="text-center text-text-muted mt-6 text-sm">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-purple-light hover:underline">
-            Register here
-          </Link>
-        </p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default ResetPassword;

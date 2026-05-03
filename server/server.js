@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { urlencoded } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import http from 'http';
@@ -31,6 +31,7 @@ setIO(io);
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }))
 
 app.set('io', io);
 

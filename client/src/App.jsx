@@ -16,6 +16,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
 import Toast from './components/common/Toast';
 import useToastStore from './store/toastStore';
+import VerifyOTP from './pages/verifyOtp';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+
 function App() {
   useAuth(); // Initialize auth state on load
   const { toasts, removeToast } = useToastStore();
@@ -30,6 +34,9 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route
             path="/employer/dashboard"
@@ -71,10 +78,10 @@ function App() {
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">
-            <Toast 
-              message={toast.message} 
-              type={toast.type} 
-              onClose={() => removeToast(toast.id)} 
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              onClose={() => removeToast(toast.id)}
             />
           </div>
         ))}

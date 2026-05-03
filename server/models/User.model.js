@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema(
       enum: ['candidate', 'employer', 'admin'],
       default: 'candidate',
     },
+    otp: {
+      type: String,
+      default: null
+    },
+    otpExpiresAt: {
+      type: Date,
+      default: null
+    },
     resumeUrl: {
       type: String,
     },
