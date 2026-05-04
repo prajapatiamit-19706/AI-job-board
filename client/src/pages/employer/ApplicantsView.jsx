@@ -14,6 +14,8 @@ const ApplicantsView = () => {
     const { mutate: updateStatus, isPending: isUpdating } = useUpdateApplicationStatus();
     const queryClient = useQueryClient();
     const [expanded, setExpanded] = useState({});
+    const [pendingInterview, setPendingInterview] = useState(null);
+    const [interviewDate, setInterviewDate] = useState('');
 
     useAIScoreSocket(useCallback((data) => {
         queryClient.setQueryData(['job-applications', jobId], (old) => {
@@ -36,7 +38,26 @@ const ApplicantsView = () => {
     }, [jobId, queryClient]));
 
     const handleStatusChange = (applicationId, status) => {
+        if (status === 'interview') {
+            setPendingInterview(applicationId);
+            return;
+        }
         updateStatus({ applicationId, status });
+    };
+
+    const confirmInterview = (applicationId) => {
+        if (!interviewDate) {
+            alert('Please select a date and time for the interview');
+            return;
+        }
+        updateStatus({ applicationId, status: 'interview', interviewDate });
+        setPendingInterview(null);
+        setInterviewDate('');
+    };
+
+    const cancelInterview = () => {
+        setPendingInterview(null);
+        setInterviewDate('');
     };
 
     const getStatusClasses = (status) => {
@@ -112,18 +133,34 @@ const ApplicantsView = () => {
                                             <span className={`px-3 py-1 text-xs uppercase border rounded-full font-bold ${getStatusClasses(app.status)}`}>
                                                 {app.status}
                                             </span>
-                                            <select
-                                                value={app.status}
-                                                onChange={(e) => handleStatusChange(app._id, e.target.value)}
-                                                disabled={isUpdating}
-                                                className="bg-bg-surface border border-border-soft text-text-primary rounded-lg px-2 py-1 text-sm focus:border-purple focus:outline-none disabled:opacity-50"
-                                            >
-                                                <option value="applied">Applied</option>
-                                                <option value="shortlisted">Shortlisted</option>
-                                                <option value="interview">Interview</option>
-                                                <option value="rejected">Rejected</option>
-                                                <option value="hired">Hired</option>
-                                            </select>
+                                            {pendingInterview === app._id ? (
+                                                <div className="mt-2 flex flex-col gap-2 bg-bg-surface p-3 rounded-xl border border-border-purple absolute z-10 right-10 shadow-lg shadow-purple/10">
+                                                    <label className="text-xs text-text-muted">Select Interview Date & Time</label>
+                                                    <input 
+                                                        type="datetime-local" 
+                                                        value={interviewDate}
+                                                        onChange={(e) => setInterviewDate(e.target.value)}
+                                                        className="bg-bg-main border border-border-soft text-text-primary rounded-lg px-2 py-1 text-sm focus:border-purple focus:outline-none"
+                                                    />
+                                                    <div className="flex gap-2 justify-end">
+                                                        <button onClick={cancelInterview} className="text-xs text-text-muted hover:text-text-primary">Cancel</button>
+                                                        <button onClick={() => confirmInterview(app._id)} className="text-xs bg-purple text-white px-3 py-1 rounded hover:bg-purple/90">Confirm</button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <select
+                                                    value={app.status}
+                                                    onChange={(e) => handleStatusChange(app._id, e.target.value)}
+                                                    disabled={isUpdating}
+                                                    className="bg-bg-surface border border-border-soft text-text-primary rounded-lg px-2 py-1 text-sm focus:border-purple focus:outline-none disabled:opacity-50"
+                                                >
+                                                    <option value="applied">Applied</option>
+                                                    <option value="shortlisted">Shortlisted</option>
+                                                    <option value="interview">Interview</option>
+                                                    <option value="rejected">Rejected</option>
+                                                    <option value="hired">Hired</option>
+                                                </select>
+                                            )}
                                         </div>
 
                                         {app.resumeUrl && (
@@ -138,6 +175,16 @@ const ApplicantsView = () => {
                                         )}
                                     </div>
                                 </div>
+                                
+                                <div className="px-5 pb-3 pt-2 bg-bg-surface border-t border-border-soft flex flex-wrap gap-4 text-xs text-text-hint">
+                                    <span>Applied: {new Date(app.appliedAt).toLocaleString()}</span>
+                                    {app.shortlistedAt && <span>• Shortlisted: {new Date(app.shortlistedAt).toLocaleString()}</span>}
+                                    {app.interviewAt && <span>• Interview Set: {new Date(app.interviewAt).toLocaleString()}</span>}
+                                    {app.interviewDate && <span className="text-purple-light font-medium">• Interview Date: {new Date(app.interviewDate).toLocaleString()}</span>}
+                                    {app.rejectedAt && <span>• Rejected: {new Date(app.rejectedAt).toLocaleString()}</span>}
+                                    {app.hiredAt && <span className="text-green-400 font-medium">• Hired: {new Date(app.hiredAt).toLocaleString()}</span>}
+                                </div>
+
                                 {expanded[app._id] && (
                                     <div className="px-5 pb-5 border-t border-border-soft bg-bg-main/30">
                                         <AIScoreCard application={app} />

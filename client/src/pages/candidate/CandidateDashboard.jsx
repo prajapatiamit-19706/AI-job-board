@@ -2,10 +2,43 @@ import { Link } from 'react-router-dom';
 import { useGetCandidateApplications, useWithdrawApplication } from '../../hooks/useApplications';
 import AIScoreSummary from '../../components/candidate/AIScoreSummary';
 import InterviewPrepCard from '../../components/candidate/InterviewPrepCard';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAIScoreSocket, useApplicationStatusSocket } from '../../hooks/useSocket';
+import { useCallback } from 'react';
+import useAuthStore from '../../store/authStore';
 
 const CandidateDashboard = () => {
   const { data: applications = [], isLoading } = useGetCandidateApplications();
   const { mutate: withdrawApplication } = useWithdrawApplication();
+  const queryClient = useQueryClient();
+
+  useAIScoreSocket(useCallback((data) => {
+    queryClient.setQueryData(['candidate-applications'], (old) => {
+      if (!old) return old;
+      return old.map(app =>
+        app._id === data.applicationId
+          ? {
+            ...app,
+            aiScore: data.score,
+            aiSummary: data.summary,
+            aiSkillsMatched: data.skillsMatched,
+            aiSkillsMissing: data.skillsMissing,
+            aiExperienceMatch: data.experienceMatch,
+            aiRecommendation: data.recommendation,
+            aiScoredAt: new Date().toISOString()
+          }
+          : app
+      );
+    });
+  }, [queryClient]));
+
+  const { user } = useAuthStore();
+  
+  useApplicationStatusSocket(useCallback((data) => {
+    if (user && data.candidateId === user._id) {
+      queryClient.invalidateQueries({ queryKey: ['candidate-applications'] });
+    }
+  }, [queryClient, user]));
 
   if (isLoading) {
     return (
@@ -116,9 +149,18 @@ const CandidateDashboard = () => {
                   </div>
                 </div>
 
+                <div className="mt-4 px-4 py-2 bg-bg-surface border border-border-soft rounded-lg flex flex-wrap gap-4 text-xs text-text-hint">
+                  <span>Applied: {new Date(app.appliedAt).toLocaleString()}</span>
+                  {app.shortlistedAt && <span>• Shortlisted: {new Date(app.shortlistedAt).toLocaleString()}</span>}
+                  {app.interviewAt && <span>• Interview Set: {new Date(app.interviewAt).toLocaleString()}</span>}
+                  {app.interviewDate && <span className="text-purple-light font-medium">• Interview Date: {new Date(app.interviewDate).toLocaleString()}</span>}
+                  {app.rejectedAt && <span>• Rejected: {new Date(app.rejectedAt).toLocaleString()}</span>}
+                  {app.hiredAt && <span className="text-green-400 font-medium">• Hired: {new Date(app.hiredAt).toLocaleString()}</span>}
+                </div>
+
                 <AIScoreSummary application={app} />
                 {
-                  app.status === 'shortlisted' || app.status === 'interview' && (
+                  (app.status === 'shortlisted' || app.status === 'interview') && (
                     <InterviewPrepCard applicationId={app._id} jobTitle={app.job?.title} />
                   )
                 }

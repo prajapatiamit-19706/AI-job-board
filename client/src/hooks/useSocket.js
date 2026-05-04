@@ -27,3 +27,26 @@ export const useAIScoreSocket = (onScoreReady) => {
     };
   }, [socket, onScoreReady]);
 };
+
+export const useInterviewQuestionsSocket = (onQuestionsReady) => {
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('interviewQuestionsReady', onQuestionsReady);
+    return () => {
+      socket.off('interviewQuestionsReady', onQuestionsReady);
+    };
+  }, [socket, onQuestionsReady]);
+};
+export const useApplicationStatusSocket = (onStatusUpdated) => {
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('applicationStatusUpdated', onStatusUpdated);
+    return () => {
+      socket.off('applicationStatusUpdated', onStatusUpdated);
+    };
+  }, [socket, onStatusUpdated]);
+};

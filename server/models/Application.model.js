@@ -57,6 +57,21 @@ const applicationSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    shortlistedAt: {
+        type: Date,
+    },
+    interviewAt: {
+        type: Date,
+    },
+    rejectedAt: {
+        type: Date,
+    },
+    hiredAt: {
+        type: Date,
+    },
+    interviewDate: {
+        type: Date,
+    },
 });
 
 applicationSchema.index({ candidate: 1, job: 1 }, { unique: true });

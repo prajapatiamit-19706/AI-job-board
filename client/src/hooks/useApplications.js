@@ -43,8 +43,8 @@ export const useGetJobApplications = (jobId) => {
 export const useUpdateApplicationStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ applicationId, status }) => {
-      const response = await axiosInstance.patch(`/api/applications/${applicationId}/status`, { status });
+    mutationFn: async ({ applicationId, status, interviewDate }) => {
+      const response = await axiosInstance.patch(`/api/applications/${applicationId}/status`, { status, interviewDate });
       return response.data;
     },
     onSuccess: () => {

@@ -106,12 +106,16 @@ export const getJobApplications = async (req, res) => {
 export const updateApplicationStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, interviewDate } = req.body;
     const employerId = req.user._id;
 
     const validStatuses = ['applied', 'shortlisted', 'interview', 'rejected', 'hired'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    if (status === 'interview' && !interviewDate) {
+      return res.status(400).json({ success: false, message: 'Interview date is required for interview status' });
     }
 
     const application = await Application.findById(id).populate('job').populate('candidate', 'name email');
@@ -124,6 +128,15 @@ export const updateApplicationStatus = async (req, res) => {
     }
 
     application.status = status;
+    const now = new Date();
+    if (status === 'shortlisted') application.shortlistedAt = now;
+    else if (status === 'interview') {
+      application.interviewAt = now;
+      application.interviewDate = new Date(interviewDate);
+    }
+    else if (status === 'rejected') application.rejectedAt = now;
+    else if (status === 'hired') application.hiredAt = now;
+
     await application.save();
 
     // Fire-and-forget email
@@ -132,7 +145,7 @@ export const updateApplicationStatus = async (req, res) => {
     // Socket.io emit
     const io = req.app.get('io');
     if (io) {
-      io.to(application.candidate._id.toString()).emit('applicationStatusUpdated', {
+      io.emit('applicationStatusUpdated', {
         candidateId: application.candidate._id,
         jobTitle: application.job.title,
         status: status,

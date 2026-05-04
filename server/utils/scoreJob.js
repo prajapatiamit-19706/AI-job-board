@@ -4,7 +4,6 @@ import { extractTextFromPDF } from './pdfExtract.js';
 import { scoreResume } from './aiScorer.js';
 import { getIO } from '../config/socket.js';
 import { createNotification } from './notify.js';
-import { triggerInterviewGeneration } from './interviewGenerator.js';
 
 export const triggerAIScoring = async (applicationId, resumeUrl, job) => {
   try {
@@ -40,10 +39,6 @@ export const triggerAIScoring = async (applicationId, resumeUrl, job) => {
     })
 
     console.log('✅ DB updated with AI score')
-
-    // fire interview question generation automatically
-    // no await — pure background job
-    triggerInterviewGeneration(applicationId, job)
 
     const io = getIO()
     if (io) {

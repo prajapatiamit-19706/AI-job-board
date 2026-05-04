@@ -1,14 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useGetCandidateQuestions } from '../../hooks/useInterviewQuestions';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGetCandidateQuestions, useGenerateCandidateQuestions } from '../../hooks/useInterviewQuestions';
+import useToastStore from '../../store/toastStore';
+import { useInterviewQuestionsSocket } from '../../hooks/useSocket';
 
 export default function InterviewPrepCard({ applicationId, jobTitle }) {
-  const { data: response } = useGetCandidateQuestions(applicationId);
+  const queryClient = useQueryClient();
+  const { data: response, isLoading } = useGetCandidateQuestions(applicationId);
   const data = response?.data;
+
+  const generateMutation = useGenerateCandidateQuestions();
+  const { addToast } = useToastStore();
 
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [studied, setStudied] = useState([]);
   const [justAppeared, setJustAppeared] = useState(true);
+  const [isRequested, setIsRequested] = useState(false);
+
+  useInterviewQuestionsSocket(useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['candidate-interview-prep', applicationId] });
+    setIsRequested(false);
+  }, [queryClient, applicationId]));
 
   useEffect(() => {
     const saved = localStorage.getItem(`studied-${applicationId}`);
@@ -34,8 +47,38 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleGenerate = () => {
+    setIsRequested(false);
+    generateMutation.mutate(applicationId, {
+      onSuccess: () => {
+        setIsRequested(true);
+      },
+      onError: (err) => {
+        addToast(err.response?.data?.message || 'Failed to generate questions.', 'error');
+      }
+    });
+  };
+
+  if (isLoading) {
+    return <div className="mt-4 pt-4 border-t border-border-soft text-text-hint text-xs">Loading interview prep...</div>;
+  }
+
   if (!data || !data.questions || data.questions.length === 0) {
-    return null;
+    return (
+      <div className="mt-4 pt-4 border-t border-border-soft">
+        <button
+          onClick={handleGenerate}
+          disabled={generateMutation.isPending || isRequested}
+          className="w-full bg-purple-muted border border-border-purple text-purple-light text-xs font-bold py-2 rounded-xl hover:bg-purple/20 transition-all disabled:opacity-50"
+        >
+          {generateMutation.isPending
+            ? 'Generating...'
+            : isRequested
+              ? '✨ Generating... please wait'
+              : '✨ Generate AI Interview Questions'}
+        </button>
+      </div>
+    );
   }
 
   const { questions, aiScore } = data;
@@ -83,9 +126,22 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
         <div className="mt-3 space-y-2">
           {/* Header Card */}
           <div className="bg-purple-muted border border-border-purple rounded-xl p-4">
-            <h4 className="text-purple-light font-bold text-sm flex items-center gap-2">
-              🎯 Your Interview Prep Guide
-            </h4>
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="text-purple-light font-bold text-sm flex items-center gap-2">
+                🎯 Your Interview Prep Guide
+              </h4>
+              <button
+                onClick={handleGenerate}
+                disabled={generateMutation.isPending || isRequested}
+                className="text-xs bg-bg-surface border border-border-soft hover:border-purple/50 text-text-muted hover:text-purple-light px-2 py-1 rounded transition-colors disabled:opacity-50"
+              >
+                {generateMutation.isPending
+                  ? 'Generating...'
+                  : isRequested
+                    ? 'Generating... please wait'
+                    : '↺ Re-generate'}
+              </button>
+            </div>
             <p className="text-text-muted text-xs leading-relaxed mt-1">
               Here are {total} AI-generated preparation questions for your {jobTitle} application. Study these carefully!
             </p>
@@ -105,8 +161,8 @@ export default function InterviewPrepCard({ applicationId, jobTitle }) {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`rounded-lg px-3 py-1 text-xs transition-all ${isActive
-                      ? 'bg-purple text-white font-bold'
-                      : 'bg-bg-surface text-text-muted hover:bg-bg-card'
+                    ? 'bg-purple text-white font-bold'
+                    : 'bg-bg-surface text-text-muted hover:bg-bg-card'
                     }`}
                 >
                   {tab}

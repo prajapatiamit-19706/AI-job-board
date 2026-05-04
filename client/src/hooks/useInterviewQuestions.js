@@ -59,3 +59,18 @@ export const useGetCandidateQuestions = (applicationId) => {
     enabled: !!applicationId,
   });
 };
+
+export const useGenerateCandidateQuestions = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (applicationId) => {
+      const response = await axiosInstance.post(`/api/interviews/candidate/${applicationId}/generate`);
+      return response.data;
+    },
+    onSuccess: (data, applicationId) => {
+      // invalidate to fetch updated questions
+      queryClient.invalidateQueries({ queryKey: ['candidate-interview-prep', applicationId] });
+    },
+  });
+};
