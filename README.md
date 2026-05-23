@@ -2,20 +2,18 @@
 
 > A full-stack intelligent job platform where AI scores resumes, generates interview prep questions, and delivers real-time notifications — built to production standard.
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-7C3AED?style=for-the-badge&logo=vercel&logoColor=white)](https://your-vercel-url.vercel.app)
-[![Backend](https://img.shields.io/badge/Backend-Render-1D9E75?style=for-the-badge&logo=render&logoColor=white)](https://your-render-url.onrender.com)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB_Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/atlas)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-7C3AED?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-job-board-chi.vercel.app)
+[![Backend](https://img.shields.io/badge/Backend-Render-1D9E75?style=for-the-badge&logo=render&logoColor=white)](https://ai-job-board-ya67.onrender.com)
 [![License](https://img.shields.io/badge/License-MIT-A78BFA?style=for-the-badge)](LICENSE)
 
 ---
 
 ## 📸 Screenshots
 
-> _Add your screenshots here_
 
-| Jobs Listing | AI Score Card | Admin Dashboard |
+| Jobs Listing | AI Score Card | Employer Dashboard |
 |---|---|---|
-| ![Jobs](./screenshots/jobs.png) | ![Score](./screenshots/score.png) | ![Admin](./screenshots/admin.png) |
+| ![Jobs](./client/public/ss5.png) | ![Score](./client/public/ss2.png) | ![Employer](./client/public/ss4.png) |
 
 ---
 
@@ -564,9 +562,9 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 ## 👨‍💻 Author
 
 **Amit Prajapati**
-- GitHub: [@amitprajapati](https://github.com/amitprajapati)
-- LinkedIn: [Amit Prajapati](https://linkedin.com/in/amitprajapati)
-- Email: your@email.com
+- GitHub: [@amitprajapati](https://github.com/prajapatiamit-19706)
+- LinkedIn: [Amit Prajapati](https://www.linkedin.com/in/amit-p1907)
+- Email: prajapatiamit10822@gmail.com
 
 ---
 
