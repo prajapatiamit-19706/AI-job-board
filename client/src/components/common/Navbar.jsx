@@ -35,6 +35,16 @@ const Navbar = () => {
             >
               Dashboard
             </NavLink>
+            {user.role === 'candidate' && (
+              <NavLink
+                to="/candidate/profile"
+                className={({ isActive }) =>
+                  `hover:text-text-primary transition-colors ${isActive ? "text-text-primary" : "text-text-muted"}`
+                }
+              >
+                Profile
+              </NavLink>
+            )}
             <span className="text-text-primary">{user.name}</span>
             <NotificationBell />
             <button

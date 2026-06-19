@@ -79,7 +79,15 @@ const CandidateDashboard = () => {
   return (
     <div className="bg-bg-main min-h-screen">
       <div className="max-w-6xl mx-auto px-6 py-12">
-        <h1 className="text-text-primary font-bold text-3xl mb-8">My Applications</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-text-primary font-bold text-3xl">My Applications</h1>
+          <Link
+            to="/candidate/profile"
+            className="bg-purple text-white font-bold rounded-lg px-4 py-2 hover:bg-purple/90 transition-all text-sm shadow-md shadow-purple/10"
+          >
+            Edit Profile
+          </Link>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-bg-surface border border-border-soft rounded-xl p-6">

@@ -11,6 +11,7 @@ import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
 import EmployerDashboard from './pages/employer/EmployerDashboard';
 import CandidateDashboard from './pages/candidate/CandidateDashboard';
+import ProfilePage from './pages/candidate/ProfilePage';
 import ApplicantsView from './pages/employer/ApplicantsView';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
@@ -59,6 +60,14 @@ function App() {
             element={
               <ProtectedRoute role="candidate">
                 <CandidateDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/candidate/profile"
+            element={
+              <ProtectedRoute role="candidate">
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

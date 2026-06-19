@@ -192,7 +192,7 @@ const AdminDashboard = () => {
                     <td className="px-4 py-3 text-text-primary text-sm font-medium">{job.title}</td>
                     <td className="px-4 py-3 text-text-muted text-sm">{job.employer?.companyName}</td>
                     <td className="px-4 py-3">
-                      <span className="bg-bg-surface text-text-muted border border-border-soft rounded-full px-2 py-1 text-[10px] uppercase font-bold">
+                      <span className="bg-bg-surface text-text-muted border border-border-soft rounded-full px-2 py-1 text-[10px] uppercase font-bold cursor-pointer">
                         {job.type}
                       </span>
                     </td>

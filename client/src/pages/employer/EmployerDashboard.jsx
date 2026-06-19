@@ -103,7 +103,7 @@ const EmployerDashboard = () => {
                         <div className="text-text-muted text-xs mt-1">{job.location || 'Remote'}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="capitalize text-text-muted">{job.type.replace('-', ' ')}</span>
+                        <span className="capitalize text-text-muted cursor-pointer">{job.type.replace('-', ' ')}</span>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className="bg-bg-surface text-text-primary border border-border-soft rounded-full w-8 h-8 inline-flex items-center justify-center font-bold">
