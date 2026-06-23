@@ -337,6 +337,7 @@ export const forgotPassword = async (req, res) => {
     user.otp = otp;
     user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
     await user.save();
+    console.log(otp);
 
     sendOTPEmail(email, user.name, otp).catch(err =>
       console.error('Forgot Password OTP email failed:', err.message)

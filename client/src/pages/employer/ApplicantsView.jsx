@@ -6,6 +6,7 @@ import { useGetJobApplications, useUpdateApplicationStatus } from '../../hooks/u
 import { useGetJobById } from '../../hooks/useJobs';
 import { useAIScoreSocket } from '../../hooks/useSocket';
 import AIScoreCard from '../../components/employer/AIScoreCard';
+import CandidateProfileModal from '../../components/employer/CandidateProfileModal';
 
 const ApplicantsView = () => {
     const { jobId } = useParams();
@@ -16,6 +17,7 @@ const ApplicantsView = () => {
     const [expanded, setExpanded] = useState({});
     const [pendingInterview, setPendingInterview] = useState(null);
     const [interviewDate, setInterviewDate] = useState('');
+    const [selectedCandidateId, setSelectedCandidateId] = useState(null);
 
     useAIScoreSocket(useCallback((data) => {
         queryClient.setQueryData(['job-applications', jobId], (old) => {
@@ -107,11 +109,22 @@ const ApplicantsView = () => {
                             <div key={app._id} className="bg-bg-card border border-border-soft rounded-xl flex flex-col overflow-hidden">
                                 <div className="p-5 flex flex-col md:flex-row items-center gap-6">
                                     <div className="flex items-center gap-4 flex-1">
-                                        <div className="w-12 h-12 rounded-full bg-bg-surface text-purple-light flex items-center justify-center font-bold text-lg border border-border-soft flex-shrink-0">
-                                            {(app.candidate?.name || 'U').charAt(0).toUpperCase()}
-                                        </div>
+                                        <button
+                                            onClick={() => setSelectedCandidateId(app.candidate?._id)}
+                                            className="w-12 h-12 rounded-full bg-bg-surface text-purple-light flex items-center justify-center font-bold text-lg border border-purple hover:border-purple-light hover:scale-105 active:scale-95 transition-all overflow-hidden flex-shrink-0 cursor-pointer shadow-md shadow-purple/10"
+                                            title="View Candidate Profile"
+                                        >
+                                            {app.candidate?.avatar ? (
+                                                <img src={app.candidate.avatar} alt={app.candidate.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                (app.candidate?.name || 'U').charAt(0).toUpperCase()
+                                            )}
+                                        </button>
                                         <div>
                                             <h3 className="text-text-primary font-bold">{app.candidate?.name || 'Unknown Candidate'}</h3>
+                                            {app.candidate?.headline && (
+                                                <p className="text-purple-light text-xs font-semibold">{app.candidate.headline}</p>
+                                            )}
                                             <p className="text-text-muted text-sm">{app.candidate?.email || 'No email provided'}</p>
                                         </div>
                                     </div>
@@ -200,6 +213,13 @@ const ApplicantsView = () => {
                     </div>
                 )}
             </div>
+
+            {selectedCandidateId && (
+                <CandidateProfileModal
+                    candidateId={selectedCandidateId}
+                    onClose={() => setSelectedCandidateId(null)}
+                />
+            )}
         </div>
     );
 };
